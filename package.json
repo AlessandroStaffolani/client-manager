@@ -1,6 +1,7 @@
 {
   "name": "clinet-manager",
   "version": "0.1.0",
+  "author": "Alessandro Staffolani",
   "private": true,
   "dependencies": {
     "@material-ui/icons": "^1.0.0-beta.43",
