@@ -13,5 +13,24 @@ export function findPlace(google, address) {
             }
         });
     });
+}
 
+export function findPlaceById(google, map, place_id) {
+
+    const service = new google.maps.places.PlacesService(map);
+
+    return new Promise((resolve, reject) => {
+
+        service.getDetails({
+            placeId: place_id
+        }, function(place, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+
+                resolve(place);
+            } else {
+                reject(status);
+            }
+        });
+
+    });
 }

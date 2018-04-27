@@ -15,7 +15,6 @@ import Modal from 'material-ui/Modal';
 
 const styles = theme => ({
     root: {
-        marginTop: theme.spacing.unit * 3,
         flexGrow: 1,
     },
     button: {

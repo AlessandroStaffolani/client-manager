@@ -6,7 +6,8 @@ import SimpleAppBar from './SimpleAppBar';
 import ClientGrid from './ClientGrid';
 import Papa from "papaparse";
 import { readInputFile, reformatCsvData, createCsvFile } from '../utilities/csvUtility';
-import { findPlace } from '../google/find-place';
+import { composeAddress } from '../utilities/addressUtility';
+import { findPlace, findPlaceById } from '../google/find-place';
 import { config } from '../google/config';
 import { Map } from '../google/Map';
 import GoogleApiComponent from '../google/GoogleApiComponent';
@@ -38,6 +39,10 @@ const DEFAULT_DELIMITER = ',';
 const DEFAULT_NEWLINE = '';
 const DEFAULT_ESCAPECHAR = '';
 const DEFAULT_DOWNLOAD_LOCATION = path.join(__dirname, '..', '..', 'downloads', 'clienti.csv');
+const ADDRESS_TYPES = [
+    'route',
+    'street_number'
+];
 
 class App extends Component {
     constructor(props) {
@@ -150,66 +155,66 @@ class App extends Component {
         let newData = [];
         let markers = [];
 
-        let searchPromise = new Promise((resolve, reject) => {
-            for (let i = 0; i < data.length; i++) {
-                let item = data[i];
-                let completed = (100 * (i+1)) / data.length;
+        for (let i = 0; i < data.length; i++) {
+            let item = data[i];
+            let completed = (100 * (i+1)) / data.length;
 
-                this.setState({completed: completed});
+            this.setState({completed: completed});
 
-                let address = item.azienda + ', ' + item.citta;
-                if (item.stato !== undefined) {
-                    address += ', ' + item.stato;
-                }
-                findPlace(this.props.google, address)
-                    .then(result => {
-                        newData[i] = {
-                            id: item.id,
-                            azienda: item.azienda,
-                            stato: item.stato,
-                            citta: item.citta,
-                            indirizzo: result.formatted_address,
-                            latitudine: result.geometry.location.lat(),
-                            longitudine: result.geometry.location.lng(),
-                        };
-
-                        markers.push({
-                            id: i,
-                            title: item.azienda,
-                            position: {
-                                lat: result.geometry.location.lat(),
-                                lng: result.geometry.location.lng()
-                            }
-                        });
-
-                        this.setState({
-                            data: newData,
-                            fileData: newData,
-                            dataMarkers: markers
-                        });
-
-                        if (i === data.length - 1) {
-                            this.setState({
-                                execution: false
-                            })
-                        }
-                    })
-                    .catch(reject => {
-                        newData[i] = item;
-
-                        this.setState({
-                            data: newData,
-                            fileData: newData
-                        });
-
-                        if (i === data.length - 1) {
-                            this.setState({
-                                execution: false
-                            })
-                        }
-                    });
+            let address = item.azienda + ', ' + item.citta;
+            if (item.cap !== undefined) {
+                address += ', ' + item.cap;
             }
-        });
+            if (item.stato !== undefined) {
+                address += ', ' + item.stato;
+            }
+            let placePromise = findPlace(this.props.google, address);
+            placePromise.then(result => {
+
+                let placeIdPromise = findPlaceById(this.props.google, this.props.map, result.place_id);
+                placeIdPromise.then(place => {
+                    newData[i] = item;
+                    newData[i].indirizzo = composeAddress(place.address_components, ADDRESS_TYPES);
+                    newData[i].telefono = place.formatted_phone_number;
+                    newData[i].latitudine = place.geometry.location.lat();
+                    newData[i].longitudine = place.geometry.location.lng();
+
+                    markers.push({
+                        id: i,
+                        title: item.azienda,
+                        position: place.geometry.location
+                    });
+
+                    this.setState({
+                        data: newData,
+                        fileData: newData,
+                        dataMarkers: markers
+                    });
+
+                    if (i === data.length - 1) {
+                        this.setState({
+                            execution: false
+                        })
+                    }
+                });
+                placeIdPromise.catch(reason => console.log(reason));
+
+            });
+            placePromise.catch(reason => {
+                newData[i] = item;
+
+                this.setState({
+                    data: newData,
+                    fileData: newData
+                });
+
+                if (i === data.length - 1) {
+                    this.setState({
+                        execution: false
+                    })
+                }
+            });
+        }
 
     };
 
@@ -227,7 +232,7 @@ class App extends Component {
         for (let j = 0; j < dataObj.length; j++) {
             let item = dataObj[j];
             let itemArray = Object.values(item);
-            itemArray.slice(0, 1);
+            itemArray.splice(0, 1);
             data.push(itemArray);
             /*if (item.stato !== undefined) {
                 data.push([

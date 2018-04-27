@@ -1,5 +1,5 @@
-﻿Azienda;Stato;Città;Indirizzo;Latitudine;Longitudine
-3Tech srl;Italia;Ancona;;;
-Rhutten;Italia;San Severino;;;
-Imola Informatica;Italia;Imola;;;
-Sys Data;Italia;Bologna;;;
+﻿Azienda;Stato;Città;CAP;Indirizzo;Telefono;Latitudine;Longitudine
+3Tech srl;Italia;Ancona;60131;;;;
+Rhutten;Italia;San Severino;;;;;
+Imola Informatica;Italia;Imola;40026;;;;
+Sys Data;Italia;Bologna;40129;;;;
