@@ -3,9 +3,9 @@
 
 Simple web application made with: 
 
-- React
-- Material UI
-- Google Maps Api
+- [React](https://reactjs.org/)
+- [Material UI](https://material-ui-next.com/)
+- [Google Maps Api](https://developers.google.com/maps/)
 
 This application allows to:
 - Import a CSV file from local
@@ -32,4 +32,10 @@ yarn install
 
 ```
 yarn start
+```
+
+## Build
+
+```
+yarn build
 ```
