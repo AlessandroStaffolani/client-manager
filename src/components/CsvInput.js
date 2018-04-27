@@ -49,7 +49,7 @@ class IconLabelButtons extends React.Component {
             <div className={classes.root}>
                 <form noValidate autoComplete="off">
                     <Grid className={classes.container} container spacing={0} justify={'center'} alignContent={'center'} alignItems={'center'}>
-                        <Grid className={classes.gridItem} item xs={12} sm={4} zeroMinWidth>
+                        {/*<Grid className={classes.gridItem} item xs={12} sm={4} zeroMinWidth>
                             <TextField
                                 id="delimiter"
                                 label="Delimiter"
@@ -78,7 +78,7 @@ class IconLabelButtons extends React.Component {
                                 onChange={this.props.handleInputChange('escapeChar')}
                                 margin="normal"
                             />
-                        </Grid>
+                        </Grid>*/}
                         <Grid className={classes.gridItem} item xs={12} sm={5} zeroMinWidth>
                             <input
                                 className={classes.input}

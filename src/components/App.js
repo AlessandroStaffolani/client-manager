@@ -7,7 +7,6 @@ import ClientGrid from './ClientGrid';
 import Papa from "papaparse";
 import { readInputFile, reformatCsvData, createCsvFile } from '../utilities/csvUtility';
 import { findPlace } from '../google/find-place';
-//import GoogleApiComponent from '../google/Container';
 import { config } from '../google/config';
 import { Map } from '../google/Map';
 import GoogleApiComponent from '../google/GoogleApiComponent';
@@ -15,6 +14,7 @@ import Progress from './Progress';
 import Marker from '../google/components/Marker';
 import CsvString from './CsvString';
 import path from 'path';
+import Typography from 'material-ui/Typography';
 
 
 const theme = createMuiTheme({
@@ -52,6 +52,7 @@ class App extends Component {
             search: '',
             canExecute: false,
             execution: false,
+            canDownload: false,
             completed: 0,
             csvString: '',
             csvConfig: {
@@ -128,7 +129,8 @@ class App extends Component {
                     header: csvData.header,
                     data: csvData.data,
                     fileData: csvData.data,
-                    canExecute: true
+                    canExecute: true,
+                    canDownload: false
                 });
             })
             .catch((err) => {
@@ -141,7 +143,8 @@ class App extends Component {
         const data = this.state.fileData;
         this.setState({
             execution: true,
-            completed: 0
+            completed: 0,
+            canDownload: false
         });
 
         let newData = [];
@@ -223,7 +226,10 @@ class App extends Component {
 
         for (let j = 0; j < dataObj.length; j++) {
             let item = dataObj[j];
-            if (item.stato !== undefined) {
+            let itemArray = Object.values(item);
+            itemArray.slice(0, 1);
+            data.push(itemArray);
+            /*if (item.stato !== undefined) {
                 data.push([
                     item.azienda,
                     item.stato,
@@ -240,7 +246,7 @@ class App extends Component {
                     item.latitudine,
                     item.longitudine
                 ]);
-            }
+            }*/
         }
 
         let csvString = Papa.unparse({
@@ -248,7 +254,11 @@ class App extends Component {
             data: data
         });
 
-        this.setState({csvString: csvString});
+        this.setState({
+            csvString: csvString,
+            canDownload: true
+        });
+
         /*let writePromise = createCsvFile(DEFAULT_DOWNLOAD_LOCATION, csvString)
             .then(() => {
                 console.log('File creato');
@@ -278,6 +288,9 @@ class App extends Component {
                         completed={this.state.completed}
                         handleDownload={this.handleDownload}
                     />
+                    {this.state.canDownload ? (
+                        <CsvString ref={'downloadArea'} csvString={this.state.csvString}/>
+                    ) : '' }
                     <ClientGrid
                         header={this.state.header}
                         data={this.state.data}
@@ -286,16 +299,20 @@ class App extends Component {
                         search={this.state.search}
                         handleSearchChange={this.handleSearchChange}
                     />
+                    <div style={{width: '100%', display: 'block', position: 'relative', height: '100vh', marginTop: '32px'}}>
+                        <Typography variant="display1" gutterBottom>
+                            Mapppa Clienti
+                        </Typography>
+                        <Map
+                            centerAroundCurrentLocation={true}
+                            className="map"
+                            google={this.props.google}
+                            style={{ height: '100%', position: 'relative', width: '100%' }}
+                        >
+                            {this.state.dataMarkers.map(marker => <Marker key={marker.id} title={marker.title} position={marker.position}/>)}
+                        </Map>
+                    </div>
                 </div>
-                <CsvString csvString={this.state.csvString}/>
-                <Map
-                    centerAroundCurrentLocation={true}
-                    className="map"
-                    google={this.props.google}
-                    style={{ height: '100%', position: 'relative', width: '100%' }}
-                >
-                    {this.state.dataMarkers.map(marker => <Marker key={marker.id} title={marker.title} position={marker.position}/>)}
-                </Map>
             </MuiThemeProvider>
         );
     }

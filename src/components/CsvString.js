@@ -21,10 +21,18 @@ class CsvString extends React.Component {
 
         return (
             <div>
+                <Typography variant="display1" gutterBottom>
+                    CSV Aggiornato
+                </Typography>
+                <Typography variant="subheading" gutterBottom>
+                    Copia questo testo in un file vuoto e salvalo con estensione .csv
+                </Typography>
+                <hr/>
                 <TextField
                     id="multiline-flexible"
                     multiline
-                    rowsMax="10"
+                    rows={10}
+                    rowsMax="20"
                     value={this.props.csvString}
                     disabled={true}
                     margin="normal"
