@@ -16,6 +16,7 @@ import Marker from '../google/components/Marker';
 import CsvString from './CsvString';
 import path from 'path';
 import Typography from 'material-ui/Typography';
+import { globalConfig } from '../globalConfig';
 
 
 const theme = createMuiTheme({
@@ -146,7 +147,33 @@ class App extends Component {
     handlePlacesButton = () => {
 
         const data = this.state.fileData;
-        this.setState({
+        let apiPath = globalConfig.host + globalConfig.apiName + 'post/data';
+
+        fetch(apiPath, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                data: data,
+            })
+        })
+            .then(result => console.log(result.json()))
+            .catch(reason => console.log(reason));
+
+        fetch(apiPath, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(result => console.log(result.json()))
+            .catch(reason => console.log(reason));
+
+
+        /*this.setState({
             execution: true,
             completed: 0,
             canDownload: false
@@ -214,7 +241,7 @@ class App extends Component {
                     })
                 }
             });
-        }
+        }*/
 
     };
 

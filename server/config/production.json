@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "devURL": "http://localhost:5000",
+  "env": "production",
+  "dbURL": "mongodb://alessandro:Ale8193@ds159509.mlab.com:59509/client_manager",
+  "sessionSecret": "qwertyuiop123456789",
+  "sessionName": "clientManager.sess"
+}
