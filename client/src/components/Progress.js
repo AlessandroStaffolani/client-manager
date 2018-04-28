@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
 import Paper from 'material-ui/Paper';
-import { LinearProgress } from 'material-ui/Progress';
+import { CircularProgress } from 'material-ui/Progress';
 import Typography from 'material-ui/Typography';
 
 
@@ -19,16 +19,11 @@ const styles = theme => ({
 });
 
 function PaperSheet(props) {
-    const { classes, completed } = props;
+    const { classes } = props;
     return (
         <div className={'overlay'}>
             <div className={'wrapper'}>
-                <Paper className={classes.root} elevation={4}>
-                    <Typography className={classes.title} variant="headline" component="h3" color={'secondary'}>
-                        Sto cercando gli indirizzi - {completed} %
-                    </Typography>
-                    <LinearProgress color="secondary" variant="determinate" value={completed}/>
-                </Paper>
+                <CircularProgress color="secondary" size={100} thickness={7}/>
             </div>
         </div>
     );

@@ -1,17 +1,22 @@
 
 const Client = require('../model/client');
+const utility = require('../utility');
 
 
-exports.index = function (req, res, next) {
-    res.setHeader('Content-Type', 'application/json');
+exports.index = (req, res, next) => {
+    res.header('Content-Type', 'application/json');
     res.send(JSON.stringify({ title: 'Hello World' }));
 };
 
-exports.data_get = function (req, res, next) {
+exports.get_data_headers = (req, res, next) => {
+    res.header('Content-Type', 'application/json');
+    res.json({header: utility.data_headers()});
+};
+
+exports.data_get = (req, res, next) => {
 
     Client.find()
         .then(result => {
-            console.log(result);
             res.header('Content-Type', 'application/json');
             res.json(result);
         })
@@ -19,9 +24,8 @@ exports.data_get = function (req, res, next) {
 
 };
 
-exports.data_post = function (req, res, next) {
+exports.data_post = (req, res, next) => {
     let csvData = req.body.data;
-    console.log(csvData);
     if (csvData !== undefined && csvData.length > 0) {
         csvData.forEach(item => {
 
@@ -45,6 +49,6 @@ exports.data_post = function (req, res, next) {
 
         });
     }
-    console.log('chissà');
+    res.header('Content-Type', 'application/json');
     res.json(csvData);
 };

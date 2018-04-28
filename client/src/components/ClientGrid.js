@@ -213,6 +213,7 @@ class EnhancedTable extends React.Component {
         const columnData = this.props.header;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
 
+        let counterRow = 0;
         let counterCell = 0;
 
         return (
@@ -234,7 +235,7 @@ class EnhancedTable extends React.Component {
                                         hover
                                         role="checkbox"
                                         tabIndex={-1}
-                                        key={n.id}
+                                        key={counterRow++}
                                     >
                                         {columnData.map(item =>
                                             <TableCell

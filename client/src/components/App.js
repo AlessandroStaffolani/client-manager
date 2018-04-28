@@ -36,6 +36,11 @@ const theme = createMuiTheme({
     },
 });
 
+const API_HEADERS = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+};
+
 const DEFAULT_DELIMITER = ',';
 const DEFAULT_NEWLINE = '';
 const DEFAULT_ESCAPECHAR = '';
@@ -59,7 +64,6 @@ class App extends Component {
             canExecute: false,
             execution: false,
             canDownload: false,
-            completed: 0,
             csvString: '',
             csvConfig: {
                 delimiter: DEFAULT_DELIMITER,
@@ -74,6 +78,7 @@ class App extends Component {
         this.handleSearchChange = this.handleSearchChange.bind(this);
         this.handlePlacesButton = this.handlePlacesButton.bind(this);
         this.handleDownload = this.handleDownload.bind(this);
+        this.handleCloudLoad = this.handleCloudLoad.bind(this);
     }
 
     handleData = data => {
@@ -91,8 +96,10 @@ class App extends Component {
         data.forEach(row => {
             let mantain = false;
             Object.keys(row).forEach(k => {
-                if (row[k].toString().toLowerCase().includes(searchValue.toLowerCase())) {
-                    mantain = true;
+                if (row[k] !== null) {
+                    if (row[k].toString().toLowerCase().includes(searchValue.toLowerCase())) {
+                        mantain = true;
+                    }
                 }
             });
             if (mantain) {
@@ -144,6 +151,48 @@ class App extends Component {
             });
     };
 
+    handleCloudLoad = () => {
+
+        this.setState({
+            execution: true,
+        });
+
+        let dataPromise = fetch(globalConfig.host + globalConfig.apiName + 'get/data', {
+            method: 'GET',
+            headers: API_HEADERS
+        })
+            .then(result => {return result.json()})
+            .then(data => {
+                this.setState({
+                    data: data,
+                    fileData: data,
+                    canExecute: true,
+                    canDownload: false
+                })
+            })
+            .catch(reason => console.log(reason));
+
+        let headerPromise = fetch(globalConfig.host + globalConfig.apiName + 'get/data/headers', {
+            method: 'GET',
+            headers: API_HEADERS
+        })
+            .then(result => {return result.json()})
+            .then(headers => {
+                this.setState({
+                    header: headers.header
+                })
+            })
+            .catch(reason => console.log(reason));
+
+
+        Promise.all([dataPromise, headerPromise])
+            .then(() => {
+                this.setState({
+                    execution: false,
+                });
+            })
+    };
+
     handlePlacesButton = () => {
 
         const data = this.state.fileData;
@@ -151,27 +200,13 @@ class App extends Component {
 
         fetch(apiPath, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
+            headers: API_HEADERS,
             body: JSON.stringify({
                 data: data,
             })
         })
             .then(result => console.log(result.json()))
             .catch(reason => console.log(reason));
-
-        fetch(apiPath, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(result => console.log(result.json()))
-            .catch(reason => console.log(reason));
-
 
         /*this.setState({
             execution: true,
@@ -303,7 +338,7 @@ class App extends Component {
         return (
             <MuiThemeProvider theme={theme}>
                 {this.state.execution ? (
-                    <Progress completed={this.state.completed}/>
+                    <Progress/>
                 ) : '' }
                 <SimpleAppBar title={'Client Manager'} theme={theme}/>
                 <div className="App">
@@ -319,6 +354,7 @@ class App extends Component {
                         handlePlacesButton={this.handlePlacesButton}
                         completed={this.state.completed}
                         handleDownload={this.handleDownload}
+                        handleCloudLoad={this.handleCloudLoad}
                     />
                     {this.state.canDownload ? (
                         <CsvString ref={'downloadArea'} csvString={this.state.csvString}/>

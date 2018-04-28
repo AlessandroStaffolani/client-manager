@@ -17,8 +17,8 @@ body {
 }
 
 .overlay .wrapper {
-    width: 400px;
+    width: 100px;
     position: absolute;
     top: 42%;
-    left: 35%;
+    left: 46%;
 }

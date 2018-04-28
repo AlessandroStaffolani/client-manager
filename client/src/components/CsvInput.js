@@ -7,6 +7,7 @@ import { withStyles } from 'material-ui/styles';
 import FileUpload from '@material-ui/icons/FileUpload';
 import FileDownload from '@material-ui/icons/FileDownload';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import Typography from 'material-ui/Typography';
 import TextField from 'material-ui/TextField';
 import Tooltip from 'material-ui/Tooltip';
@@ -78,7 +79,7 @@ class IconLabelButtons extends React.Component {
                                 margin="normal"
                             />
                         </Grid>*/}
-                        <Grid className={classes.gridItem} item xs={12} sm={5} zeroMinWidth>
+                        <Grid className={classes.gridItem} item xs={12} sm={4} md={4} zeroMinWidth>
                             <input
                                 className={classes.input}
                                 id="raised-button-file"
@@ -99,12 +100,35 @@ class IconLabelButtons extends React.Component {
                                     <FileUpload className={classes.rightIcon}/>
                                 </Button>
                             </label>
+                        </Grid>
+                        <Grid className={classes.gridItem} item xs={12} sm={3} md={3} zeroMinWidth>
+                            {this.props.file !== null ?
+                                <Typography className={classes.fileName} variant={'subheading'} gutterBottom>
+                                    File: <b>{this.props.file.name}</b>
+                                </Typography> : ''}
+                        </Grid>
+                        <Grid className={classes.gridItem} item xs={12} sm={4} md={4} zeroMinWidth>
+                            <Tooltip id={'tooltip-db'} title={"Carica i clienti dal database se hai già importato una volta dal CSV"}>
+                                <Button
+                                    id={'db'}
+                                    className={classes.button}
+                                    color={'primary'}
+                                    fullWidth={true}
+                                    variant={'raised'}
+                                    onClick={this.props.handleCloudLoad}
+                                >
+                                    Carica dal Database
+                                    <CloudDownloadIcon className={classes.rightIcon}/>
+                                </Button>
+                            </Tooltip>
+                        </Grid>
+                        <Grid item className={classes.gridItem} xs={12} sm={4} md={4} zeroMinWidth>
                             {canExecute ? (
                                 <Tooltip id="tooltip-execute" title="Utilizza i motori di Google Maps per cercare l'indirizzo, la latitudine e la logitudine delle aziende sconosciute">
                                     <Button
                                         id={'execute'}
                                         variant="raised"
-                                        color="primary"
+                                        color="default"
                                         className={classes.button}
                                         fullWidth={true}
                                         onClick={this.props.handlePlacesButton}
@@ -130,12 +154,6 @@ class IconLabelButtons extends React.Component {
                                     </Button>
                                 </Tooltip>
                             ) : ''}
-                        </Grid>
-                        <Grid className={classes.gridItem} item xs={12} sm={4} zeroMinWidth>
-                            {this.props.file !== null ?
-                                <Typography className={classes.fileName} variant={'subheading'} gutterBottom>
-                                    File: <b>{this.props.file.name}</b>
-                                </Typography> : ''}
                         </Grid>
                     </Grid>
 
