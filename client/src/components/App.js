@@ -71,6 +71,12 @@ class App extends Component {
             alertVertical: 'bottom',
             alertHorizontal: 'center',
             csvString: '',
+            companyProcessed: {
+                total: 0,
+                founded: 0,
+                notFounded: 0,
+                notExecuted: 0,
+            },
             csvConfig: {
                 delimiter: DEFAULT_DELIMITER,
                 newline: DEFAULT_NEWLINE,
@@ -256,6 +262,7 @@ class App extends Component {
                     execution: false,
                 });
                 this.setMarkers();
+                this.updateCompanyProcessed();
             })
     };
 
@@ -290,6 +297,7 @@ class App extends Component {
                 execution: false,
             });
             this.setMarkers();
+            this.updateCompanyProcessed();
         })
 
     };
@@ -333,6 +341,28 @@ class App extends Component {
 
     };
 
+    updateCompanyProcessed = () => {
+        let apiPath = globalConfig.host + globalConfig.apiName + 'get/data/status';
+        let placeDataPromise = fetch(apiPath, {
+            method: 'GET',
+            headers: API_HEADERS
+        })
+            .then(result => {return result.json()})
+            .then(response => {
+
+                this.setState({
+                    companyProcessed: {
+                        total: response.total,
+                        founded: response.founded,
+                        notFounded: response.notFounded,
+                        notExecuted: response.notExecuted,
+                    }
+                });
+
+            })
+            .catch(reason => console.log(reason));
+    };
+
     render() {
         return (
             <MuiThemeProvider theme={theme}>
@@ -361,6 +391,7 @@ class App extends Component {
                         canDownload={this.state.canDownload}
                         handleDownload={this.handleDownload}
                         handleCloudLoad={this.handleCloudLoad}
+                        companyProcessed={this.state.companyProcessed}
                     />
                     {this.state.canShowCsvToDownload ? (
                         <CsvString ref={'downloadArea'} csvString={this.state.csvString}/>

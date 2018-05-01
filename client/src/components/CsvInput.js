@@ -44,7 +44,7 @@ const styles = theme => ({
 class IconLabelButtons extends React.Component {
 
     render(){
-        const {classes, csvConfig, canExecute, canDownload} = this.props;
+        const {classes, csvConfig, canExecute, canDownload, companyProcessed} = this.props;
         return (
             <div className={classes.root}>
                 <form noValidate autoComplete="off">
@@ -152,6 +152,29 @@ class IconLabelButtons extends React.Component {
                                         <FileDownload className={classes.rightIcon}/>
                                     </Button>
                                 </Tooltip>
+                            ) : ''}
+                        </Grid>
+                        <Grid item className={classes.gridItem} xs={12} sm={4} md={4} zeroMinWidth>
+                            {canDownload ? (
+                                <div>
+                                    <ul>
+                                        <li>
+                                            <Typography variant="body2" gutterBottom>
+                                                Aziende trovate: {companyProcessed.founded} / {companyProcessed.total}
+                                            </Typography>
+                                        </li>
+                                        <li>
+                                            <Typography variant="body2" gutterBottom>
+                                                Aziende non trovate: {companyProcessed.notFounded} / {companyProcessed.total}
+                                            </Typography>
+                                        </li>
+                                        <li>
+                                            <Typography variant="body2" gutterBottom>
+                                                Aziende ancora da calcolare: {companyProcessed.notExecuted} / {companyProcessed.total}
+                                            </Typography>
+                                        </li>
+                                    </ul>
+                                </div>
                             ) : ''}
                         </Grid>
                     </Grid>

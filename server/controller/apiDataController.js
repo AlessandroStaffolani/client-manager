@@ -1,4 +1,3 @@
-
 const Client = require('../model/client');
 const config = require('../config/config');
 const utility = require('../utility');
@@ -8,9 +7,14 @@ const googleMapsClient = require('@google/maps').createClient({
 });
 
 
+const GOOGLE_OK_STATUS = 'OK';
+const GOOGLE_ZERO_RESULTS = 'ZERO_RESULTS';
+const GOOGLE_QUERY_LIMIT = 'OVER_QUERY_LIMIT';
+
+
 exports.index = (req, res, next) => {
     res.header('Content-Type', 'application/json');
-    res.send(JSON.stringify({ title: 'Hello World' }));
+    res.send(JSON.stringify({title: 'Hello World'}));
 };
 
 exports.get_data_headers = (req, res, next) => {
@@ -29,10 +33,42 @@ exports.data_get = (req, res, next) => {
 
 };
 
+exports.data_status_get = (req, res, next) => {
+
+    let allPromise = Client.find()
+        .then(result => { return result.length; })
+        .catch(err => next(err));
+
+    let foundedPromise = Client.find({google_elaboration: 1})
+        .then(result => { return result.length; })
+        .catch(err => next(err));
+
+    let notFoundedPromise = Client.find({google_elaboration: -1})
+        .then(result => { return result.length; })
+        .catch(err => next(err));
+
+    let notExecutedPromise = Client.find({google_elaboration: 0})
+        .then(result => { return result.length; })
+        .catch(err => next(err));
+
+    Promise.all([allPromise, foundedPromise, notFoundedPromise, notExecutedPromise])
+        .then(results => {
+            res.header('Content-Type', 'application/json');
+            res.json({
+                total: results[0],
+                founded: results[1],
+                notFounded: results[2],
+                notExecuted: results[3]
+            });
+        })
+};
+
 exports.data_post = (req, res, next) => {
     let csvData = req.body.data;
     if (csvData !== undefined && csvData.length > 0) {
-        csvData.forEach(item => {
+
+        let clientsData = [];
+        csvData.map(item => {
 
             let google_elaboration = 1;
             if (utility.value_is_empty(item.telefono) && utility.value_is_empty(item.latitudine) && utility.value_is_empty(item.longitudine)) {
@@ -55,21 +91,19 @@ exports.data_post = (req, res, next) => {
                 google_elaboration: google_elaboration
             });
 
-            client.save()
-                .then((success) => {
-                    Client.find()
-                        .then(result => {
-                            res.header('Content-Type', 'application/json');
-                            res.json({
-                                data: result,
-                                header: utility.data_headers()
-                            });
-                        })
-                        .catch(err => next(err));
-                })
-                .catch((err) => next(err));
+            clientsData.push(client);
 
         });
+
+        Client.collection.insertMany(clientsData)
+            .then(result => {
+                res.header('Content-Type', 'application/json');
+                res.json({
+                    data: result.ops,
+                    header: utility.data_headers()
+                });
+            })
+            .catch(err => next(err));
     }
 };
 
@@ -96,67 +130,89 @@ exports.place_data_put = (req, res, next) => {
                 .asPromise()
                 .then((response) => {
 
-                    let result = response.json.results[0];
+                    let status = response.json.status;
+                    console.log(response.json);
 
-                    if (result.types.includes('establishment')) {
+                    if (status === GOOGLE_OK_STATUS) {
 
-                        clients[index].place_id = result.place_id;
-                        clients[index].latitude = result.geometry.location.lat;
-                        clients[index].longitude = result.geometry.location.lng;
-                        clients[index].google_elaboration = 1;
-                    } else {
-                        clients[index].google_elaboration = -1;
+                        let result = response.json.results[0];
+                        let address_components = result.address_components;
+
+                        if (utility.find_address_component(address_components, 'country') === 'Italy') {
+
+                            if (result.types.includes('establishment')) {
+
+                                clients[index].place_id = result.place_id;
+                                clients[index].latitude = result.geometry.location.lat;
+                                clients[index].longitude = result.geometry.location.lng;
+                                clients[index].country = 'Italia';
+                                clients[index].city = utility.find_address_component(address_components, 'administrative_area_level_3');
+                                clients[index].district = utility.find_address_component(address_components, 'administrative_area_level_2', 'short_name');
+                                clients[index].postal_code = utility.find_address_component(address_components, 'postal_code');
+                                clients[index].address = utility.find_address_component(address_components, 'route');
+                                clients[index].civic_number = utility.find_address_component(address_components, 'street_number', 'long_name');
+                            } else {
+                                clients[index].google_elaboration = -1;
+                            }
+                        }
+
+                        return result;
+                    } else if (status === GOOGLE_QUERY_LIMIT) {
+                        clients[index].google_elaboration = 0;
                     }
-
-                    return result;
                 })
                 .catch((err) => {
                     console.log(err);
+                    next(err);
                 });
         });
 
         let googleGeocodeAllPromise = Promise.all(googlePromiseArr)
             .then(clientGeocodeResult => {
 
-            clientGeocode = clientGeocodeResult;
+                clientGeocode = clientGeocodeResult;
 
-            return clientGeocode;
-        });
+                return clientGeocode;
+            });
 
         googleGeocodeAllPromise.then(clientGeocode => {
 
             let googlePlacesArr = clientGeocode.map(geocode => {
-                return googleMapsClient.place({ placeid: geocode.place_id})
-                    .asPromise()
-                    .then((response) => {
+                if (geocode !== undefined) {
+                    return googleMapsClient.place({placeid: geocode.place_id})
+                        .asPromise()
+                        .then((response) => {
 
-                        let result = response.json.result;
-                        let address_components = result.address_components;
+                            let status = response.json.status;
 
-                        let clientIndex = utility.find_index_of_place_id(clients, geocode.place_id);
-                        if (clientIndex !== -1) {
-                            clients[clientIndex].company = result.name;
-                            clients[clientIndex].telephone = result.formatted_phone_number;
-                            clients[clientIndex].country = utility.find_address_component(address_components, 'country');
-                            clients[clientIndex].city = utility.find_address_component(address_components, 'administrative_area_level_3');
-                            clients[clientIndex].district = utility.find_address_component(address_components, 'administrative_area_level_2', 'short_name');
-                            clients[clientIndex].postal_code = utility.find_address_component(address_components, 'postal_code');
-                            clients[clientIndex].address = utility.find_address_component(address_components, 'route');
-                            clients[clientIndex].civic_number = utility.find_address_component(address_components, 'street_number', 'long_name');
-                            clients[clientIndex].google_elaboration = 1;
-                        }
+                            if (status === GOOGLE_OK_STATUS) {
 
-                        return result;
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
+                                let result = response.json.result;
+                                let address_components = result.address_components;
+
+                                let clientIndex = utility.find_index_of_place_id(clients, geocode.place_id);
+                                if (utility.find_address_component(address_components, 'country') === 'Italy') {
+                                    if (clientIndex !== -1) {
+                                        clients[clientIndex].company = result.name;
+                                        clients[clientIndex].telephone = result.formatted_phone_number;
+                                        clients[clientIndex].google_elaboration = 1;
+                                    }
+                                }
+
+                                return result;
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            next(err);
+                        });
+                }
             });
 
             let googlePlacesAllPromise = Promise.all(googlePlacesArr)
                 .then(clientPlacesResult => {
 
-                    let updatePromiseArr = clients.map(client => {
+                   let updatePromiseArr = clients.map(client => {
                         return Client.findByIdAndUpdate(client.id, client, {})
                             .catch(err => next(err))
                             .then(updatedClient => {
@@ -178,7 +234,6 @@ exports.place_data_put = (req, res, next) => {
 
         })
     });
-
 
 
 };

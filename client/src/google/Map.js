@@ -291,7 +291,7 @@ Map.propTypes = {
 evtNames.forEach(e => (Map.propTypes[camelize(e)] = PropTypes.func));
 
 Map.defaultProps = {
-  zoom: 7,
+  zoom: 6,
   initialCenter: {
     lat: 44.506160,
     lng: 11.343305
