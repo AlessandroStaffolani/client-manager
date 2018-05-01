@@ -1,8 +1,9 @@
 {
-    "host": "localhost",
-    "devURL": "http://localhost:5000",
-    "env": "development",
-    "dbURL": "mongodb://alessandro:Ale8193@ds159509.mlab.com:59509/client_manager",
-    "sessionSecret": "qwertyuiop123456789",
-    "sessionName": "clientManager.sess"
+  "host": "localhost",
+  "devURL": "http://localhost:5000",
+  "env": "development",
+  "dbURL": "mongodb://alessandro:Ale8193@ds159509.mlab.com:59509/client_manager",
+  "sessionSecret": "qwertyuiop123456789",
+  "sessionName": "clientManager.sess",
+  "googleApiKey": "AIzaSyCErZMYl7fJqmR7x-SJgQG01713eRUk07U"
 }

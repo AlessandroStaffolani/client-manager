@@ -18,7 +18,6 @@ import Tooltip from 'material-ui/Tooltip';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import TextField from 'material-ui/TextField';
 import FilterListIcon from '@material-ui/icons/FilterList';
-import SearchIcon from '@material-ui/icons/Search';
 import Grid from 'material-ui/Grid';
 
 class EnhancedTableHead extends React.Component {
@@ -28,7 +27,7 @@ class EnhancedTableHead extends React.Component {
     };
 
     render() {
-        const {order, orderBy, rowCount, columns } = this.props;
+        const {order, orderBy, columns } = this.props;
 
         return (
             <TableHead>
@@ -38,16 +37,16 @@ class EnhancedTableHead extends React.Component {
                             <TableCell
                                 key={column.id}
                                 padding='default'
-                                sortDirection={orderBy === column.id ? order : false}
+                                sortDirection={orderBy === column.code ? order : false}
                             >
                                 <Tooltip
                                     title="Sort"
                                     placement='bottom-start'
                                 >
                                     <TableSortLabel
-                                        active={orderBy === column.id}
+                                        active={orderBy === column.code}
                                         direction={order}
-                                        onClick={this.createSortHandler(column.id)}
+                                        onClick={this.createSortHandler(column.code)}
                                     >
                                         {column.label}
                                     </TableSortLabel>
@@ -176,7 +175,7 @@ class EnhancedTable extends React.Component {
 
         this.state = {
             order: 'asc',
-            orderBy: 'calories',
+            orderBy: 'company',
             page: 0,
             rowsPerPage: 10,
             rowsPerPageOptions: [10, 25, 50]
@@ -208,7 +207,7 @@ class EnhancedTable extends React.Component {
     };
 
     render() {
-        const { classes, selected, data } = this.props;
+        const { classes, data } = this.props;
         const { order, orderBy, rowsPerPage, page } = this.state;
         const columnData = this.props.header;
         const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);

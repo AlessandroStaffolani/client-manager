@@ -6,8 +6,6 @@ import TextField from 'material-ui/TextField';
 
 const styles = theme => ({
     paper: {
-        position: 'absolute',
-        width: theme.spacing.unit * 50,
         backgroundColor: theme.palette.background.paper,
         boxShadow: theme.shadows[5],
         padding: theme.spacing.unit * 4,
@@ -20,7 +18,7 @@ class CsvString extends React.Component {
         const { classes } = this.props;
 
         return (
-            <div>
+            <div className={classes.paper}>
                 <Typography variant="display1" gutterBottom>
                     CSV Aggiornato
                 </Typography>

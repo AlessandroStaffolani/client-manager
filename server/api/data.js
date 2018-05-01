@@ -28,4 +28,6 @@ router.get('/get/data', apiDataController.data_get);
 
 router.post('/post/data', apiDataController.data_post);
 
+router.get('/google/place/data', apiDataController.place_data_put)
+
 module.exports = router;

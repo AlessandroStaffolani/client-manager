@@ -17,6 +17,7 @@ import CsvString from './CsvString';
 import path from 'path';
 import Typography from 'material-ui/Typography';
 import { globalConfig } from '../globalConfig';
+import Alert from './Alert';
 
 
 const theme = createMuiTheme({
@@ -64,6 +65,11 @@ class App extends Component {
             canExecute: false,
             execution: false,
             canDownload: false,
+            canShowCsvToDownload: false,
+            showAlert: false,
+            alertMessage: '',
+            alertVertical: 'bottom',
+            alertHorizontal: 'center',
             csvString: '',
             csvConfig: {
                 delimiter: DEFAULT_DELIMITER,
@@ -72,6 +78,7 @@ class App extends Component {
                 escapeChar: DEFAULT_ESCAPECHAR,
             }
         };
+        this.handleCloseAlerts = this.handleCloseAlerts.bind(this);
         this.handleData = this.handleData.bind(this);
         this.handleFileInput = this.handleFileInput.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -80,6 +87,10 @@ class App extends Component {
         this.handleDownload = this.handleDownload.bind(this);
         this.handleCloudLoad = this.handleCloudLoad.bind(this);
     }
+
+    handleCloseAlerts = () => {
+        this.setState({ showAlert: false });
+    };
 
     handleData = data => {
         for (let i = 0; i < data.length; i++) {
@@ -129,6 +140,10 @@ class App extends Component {
     handleFileInput = event => {
         event.preventDefault();
 
+        this.setState({
+            execution: true,
+        });
+
         let file = event.target.files[0];
         let csvData = undefined;
 
@@ -137,18 +152,54 @@ class App extends Component {
             .then((csv) => {
                 csvData = Papa.parse(csv, this.csvConfig);
                 csvData = reformatCsvData(csvData.data);
-                this.setState({
-                    file: file,
-                    header: csvData.header,
-                    data: csvData.data,
-                    fileData: csvData.data,
-                    canExecute: true,
-                    canDownload: false
-                });
+
+                let apiPath = globalConfig.host + globalConfig.apiName + 'post/data';
+
+                let saveDataPromise = fetch(apiPath, {
+                    method: 'POST',
+                    headers: API_HEADERS,
+                    body: JSON.stringify({
+                        data: csvData.data,
+                    })
+                })
+                    .then(result => result.json())
+                    .then(response => {
+                        this.setState({
+                            file: file,
+                            header: response.header,
+                            data: response.data,
+                            fileData: response.data,
+                            canExecute: true,
+                            canDownload: false,
+                            canShowCsvToDownload: false,
+                            execution: false,
+                        });
+
+                        this.setMarkers();
+                    })
+                    .catch(reason => console.log(reason));
             })
             .catch((err) => {
                 console.log(err);
             });
+    };
+
+    setMarkers = () => {
+        const { fileData } = this.state;
+        let markers = [];
+        fileData.map((client, id) => {
+            if (client.latitude !== null && client.longitude !== null) {
+                markers.push({
+                    id: id,
+                    title: client.company,
+                    position: {lat: client.latitude, lng: client.longitude}
+                })
+            }
+        });
+
+        this.setState({
+            dataMarkers: markers
+        })
     };
 
     handleCloudLoad = () => {
@@ -163,12 +214,26 @@ class App extends Component {
         })
             .then(result => {return result.json()})
             .then(data => {
-                this.setState({
-                    data: data,
-                    fileData: data,
-                    canExecute: true,
-                    canDownload: false
-                })
+                if (data.length > 0) {
+                    this.setState({
+                        data: data,
+                        fileData: data,
+                        canExecute: true,
+                        canDownload: true,
+                        canShowCsvToDownload: false,
+                        showAlert: false
+                    })
+                } else {
+                    this.setState({
+                        data: [],
+                        fileData: [],
+                        canExecute: false,
+                        canDownload: false,
+                        canShowCsvToDownload: false,
+                        showAlert: true,
+                        alertMessage: 'Il database è vuoto'
+                    })
+                }
             })
             .catch(reason => console.log(reason));
 
@@ -190,93 +255,42 @@ class App extends Component {
                 this.setState({
                     execution: false,
                 });
+                this.setMarkers();
             })
     };
 
     handlePlacesButton = () => {
 
-        const data = this.state.fileData;
-        let apiPath = globalConfig.host + globalConfig.apiName + 'post/data';
-
-        fetch(apiPath, {
-            method: 'POST',
-            headers: API_HEADERS,
-            body: JSON.stringify({
-                data: data,
-            })
-        })
-            .then(result => console.log(result.json()))
-            .catch(reason => console.log(reason));
-
-        /*this.setState({
+        this.setState({
             execution: true,
-            completed: 0,
-            canDownload: false
         });
 
-        let newData = [];
-        let markers = [];
-
-        for (let i = 0; i < data.length; i++) {
-            let item = data[i];
-            let completed = (100 * (i+1)) / data.length;
-
-            this.setState({completed: completed});
-
-            let address = item.azienda + ', ' + item.citta;
-            if (item.cap !== undefined) {
-                address += ', ' + item.cap;
-            }
-            if (item.stato !== undefined) {
-                address += ', ' + item.stato;
-            }
-            let placePromise = findPlace(this.props.google, address);
-            placePromise.then(result => {
-
-                let placeIdPromise = findPlaceById(this.props.google, this.props.map, result.place_id);
-                placeIdPromise.then(place => {
-                    newData[i] = item;
-                    newData[i].indirizzo = composeAddress(place.address_components, ADDRESS_TYPES);
-                    newData[i].telefono = place.formatted_phone_number;
-                    newData[i].latitudine = place.geometry.location.lat();
-                    newData[i].longitudine = place.geometry.location.lng();
-
-                    markers.push({
-                        id: i,
-                        title: item.azienda,
-                        position: place.geometry.location
-                    });
-
-                    this.setState({
-                        data: newData,
-                        fileData: newData,
-                        dataMarkers: markers
-                    });
-
-                    if (i === data.length - 1) {
-                        this.setState({
-                            execution: false
-                        })
-                    }
-                });
-                placeIdPromise.catch(reason => console.log(reason));
-
-            });
-            placePromise.catch(reason => {
-                newData[i] = item;
+        let apiPath = globalConfig.host + globalConfig.apiName + 'google/place/data';
+        let placeDataPromise = fetch(apiPath, {
+            method: 'GET',
+            headers: API_HEADERS
+        })
+            .then(result => {return result.json()})
+            .then(response => {
 
                 this.setState({
-                    data: newData,
-                    fileData: newData
+                    data: response.client,
+                    fileData: response.client,
+                    canExecute: true,
+                    canDownload: true,
+                    canShowCsvToDownload: false,
+                    showAlert: false
                 });
 
-                if (i === data.length - 1) {
-                    this.setState({
-                        execution: false
-                    })
-                }
+            })
+            .catch(reason => console.log(reason));
+
+        Promise.all([placeDataPromise]).then(resultArr => {
+            this.setState({
+                execution: false,
             });
-        }*/
+            this.setMarkers();
+        })
 
     };
 
@@ -293,28 +307,19 @@ class App extends Component {
 
         for (let j = 0; j < dataObj.length; j++) {
             let item = dataObj[j];
+            delete item._id;
+            delete item.__v;
+            delete item.google_elaboration;
             let itemArray = Object.values(item);
-            itemArray.splice(0, 1);
+
+            let temp = itemArray[1];
+            itemArray[1] = itemArray[0];
+            itemArray[0] = temp;
+
             data.push(itemArray);
-            /*if (item.stato !== undefined) {
-                data.push([
-                    item.azienda,
-                    item.stato,
-                    item.citta,
-                    item.address,
-                    item.latitudine,
-                    item.longitudine
-                ]);
-            } else {
-                data.push([
-                    item.azienda,
-                    item.citta,
-                    item.address,
-                    item.latitudine,
-                    item.longitudine
-                ]);
-            }*/
         }
+
+        console.log(data);
 
         let csvString = Papa.unparse({
             fields: header,
@@ -323,14 +328,8 @@ class App extends Component {
 
         this.setState({
             csvString: csvString,
-            canDownload: true
+            canShowCsvToDownload: true
         });
-
-        /*let writePromise = createCsvFile(DEFAULT_DOWNLOAD_LOCATION, csvString)
-            .then(() => {
-                console.log('File creato');
-            })
-            .catch(err => console.log(err));*/
 
     };
 
@@ -341,6 +340,13 @@ class App extends Component {
                     <Progress/>
                 ) : '' }
                 <SimpleAppBar title={'Client Manager'} theme={theme}/>
+                <Alert
+                    vertical={this.state.alertVertical}
+                    horizontal={this.state.alertHorizontal}
+                    open={this.state.showAlert}
+                    handleClose={this.handleCloseAlerts}
+                    message={this.state.alertMessage}
+                />
                 <div className="App">
                     <CsvInput
                         theme={theme}
@@ -352,16 +358,16 @@ class App extends Component {
                         canExecute={this.state.canExecute}
                         execution={this.state.execution}
                         handlePlacesButton={this.handlePlacesButton}
-                        completed={this.state.completed}
+                        canDownload={this.state.canDownload}
                         handleDownload={this.handleDownload}
                         handleCloudLoad={this.handleCloudLoad}
                     />
-                    {this.state.canDownload ? (
+                    {this.state.canShowCsvToDownload ? (
                         <CsvString ref={'downloadArea'} csvString={this.state.csvString}/>
                     ) : '' }
                     <ClientGrid
                         header={this.state.header}
-                        data={this.state.data}
+                        data={this.state.data.sort((a, b) => (b.company > a.company ? -1 : 1))}
                         theme={theme}
                         selected={this.state.selected}
                         search={this.state.search}

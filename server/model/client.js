@@ -14,7 +14,9 @@ let ClientSchema = new Schema(
         telephone: {type: String},
         email: {type: String},
         latitude: {type: Number},
-        longitude: {type: Number}
+        longitude: {type: Number},
+        place_id: {type: String},
+        google_elaboration: {type: Number} // -1 = No Result | 0 = Query Limit (try again) | 1 = Information founded
     }
 );
 

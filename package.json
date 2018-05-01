@@ -4,6 +4,7 @@
   "author": "Alessandro Staffolani",
   "private": true,
   "dependencies": {
+    "@google/maps": "^0.4.6",
     "body-parser": "~1.18.2",
     "connect-mongo": "^2.0.1",
     "cookie-parser": "~1.4.3",
@@ -18,8 +19,8 @@
     "papaparse": "^4.4.0"
   },
   "devDependencies": {
-    "nodemon": "^1.17.3",
-    "concurrently": "^3.5.1"
+    "concurrently": "^3.5.1",
+    "nodemon": "^1.17.3"
   },
   "scripts": {
     "client": "cd client && yarn start",

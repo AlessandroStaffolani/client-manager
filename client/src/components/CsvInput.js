@@ -44,7 +44,7 @@ const styles = theme => ({
 class IconLabelButtons extends React.Component {
 
     render(){
-        const {classes, csvConfig, canExecute, completed} = this.props;
+        const {classes, csvConfig, canExecute, canDownload} = this.props;
         return (
             <div className={classes.root}>
                 <form noValidate autoComplete="off">
@@ -132,14 +132,13 @@ class IconLabelButtons extends React.Component {
                                         className={classes.button}
                                         fullWidth={true}
                                         onClick={this.props.handlePlacesButton}
-                                        disabled={this.props.execution}
                                     >
                                         Trova indirizzi
                                         <MyLocationIcon className={classes.rightIcon}/>
                                     </Button>
                                 </Tooltip>
                             ) : ''}
-                            {completed ? (
+                            {canDownload ? (
                                 <Tooltip id="tooltip-download" title="Scarica il CSV aggiornato">
                                     <Button
                                         id={'download'}
