@@ -113,7 +113,7 @@ exports.place_data_put = (req, res, next) => {
     let clientGeocode = [];
     let clientPlaces = [];
 
-    let findClientToProcessPromise = Client.find({google_elaboration: 0})
+    let findClientToProcessPromise = Client.find({google_elaboration: 0}).limit(200)
         .then(result => {
 
             clients = result;
