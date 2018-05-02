@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "devURL": "http://localhost:5000",
+  "env": "development",
+  "dbURL": "DB_URL_CONNECTION",
+  "sessionSecret": "SESSION_KEY",
+  "sessionName": "clientManager.sess",
+  "googleApiKey": "GOOGLE_MAPS_KEY"
+}
