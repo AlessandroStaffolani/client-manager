@@ -23,6 +23,8 @@
     "nodemon": "^1.17.3"
   },
   "scripts": {
+    "clientNpm": "cd client && npm start",
+    "devNpm": "concurrently --kill-others-on-fail \"npm server\" \"npm client\"",
     "client": "cd client && yarn start",
     "server": "nodemon ./server/bin/server.js",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
