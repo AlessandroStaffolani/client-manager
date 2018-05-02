@@ -24,7 +24,7 @@
   },
   "scripts": {
     "clientNpm": "cd client && npm run start",
-    "devNpm": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+    "devNpm": "concurrently --kill-others-on-fail \"npm run server\" \"npm run clientNpm\"",
     "client": "cd client && yarn start",
     "server": "nodemon ./server/bin/server.js",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
