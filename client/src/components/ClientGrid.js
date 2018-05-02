@@ -178,7 +178,7 @@ class EnhancedTable extends React.Component {
             orderBy: 'company',
             page: 0,
             rowsPerPage: 10,
-            rowsPerPageOptions: [10, 25, 50]
+            rowsPerPageOptions: [10, 25, 50, 100, 500]
         };
     }
 
@@ -236,14 +236,26 @@ class EnhancedTable extends React.Component {
                                         tabIndex={-1}
                                         key={counterRow++}
                                     >
-                                        {columnData.map(item =>
-                                            <TableCell
-                                                key={counterCell++}
-                                                padding="default"
-                                            >
-                                                {n[item.code]}
-                                            </TableCell>
-                                        )}
+                                        {columnData.map(item => {
+                                            let cellValue = '';
+                                            if (item.code === 'address') {
+                                                if (n.address === null || n.civic_number === null || n.address === '' || n.civic_number === '' ) {
+                                                    cellValue = '';
+                                                } else {
+                                                    cellValue = n.address + ', ' + n.civic_number;
+                                                }
+                                            } else {
+                                                cellValue = n[item.code];
+                                            }
+                                            return (
+                                                <TableCell
+                                                    key={counterCell++}
+                                                    padding="default"
+                                                >
+                                                    {cellValue}
+                                                </TableCell>
+                                            )
+                                        })}
                                     </TableRow>
                                 );
                             })}

@@ -193,7 +193,6 @@ exports.place_data_put = (req, res, next) => {
                                 let clientIndex = utility.find_index_of_place_id(clients, geocode.place_id);
                                 if (utility.find_address_component(address_components, 'country') === 'Italy') {
                                     if (clientIndex !== -1) {
-                                        clients[clientIndex].company = result.name;
                                         clients[clientIndex].telephone = result.formatted_phone_number;
                                         clients[clientIndex].google_elaboration = 1;
                                     }
